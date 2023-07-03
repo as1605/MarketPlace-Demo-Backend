@@ -3,9 +3,11 @@ import motor.motor_asyncio
 import os
 import json
 from bson import json_util
-
+from bson import ObjectId
+from typing import Union
 
 class Product(BaseModel):
+    _id: Union[ObjectId, None]
     title: str
     category: str
     price: int
