@@ -1,4 +1,13 @@
 from fastapi import FastAPI, status
+from fastapi.encoders import jsonable_encoder
+from fastapi.responses import JSONResponse
+
+from bson import ObjectId
+import dotenv
+
+dotenv.load_dotenv()
+
+from database import *
 
 app = FastAPI()
 
@@ -8,50 +17,48 @@ async def root():
     return {"message": "Hello World"}
 
 
-@app.get("/search/featured", status_code=status.HTTP_200_OK)
+@app.get("/search/featured")
 async def featured():
-    return {"featured": []}
+    result = await Products.find({"isFeatured": True}).to_list(10)
+    return JSONResponse(status_code=status.HTTP_200_OK, content=parse_json(result))
 
 
-@app.get("/search/promoted", status_code=status.HTTP_200_OK)
+@app.get("/search/promoted")
 async def promoted():
-    return {"promoted": []}
+    result = await Products.find({"isPromoted": True}).to_list(10)
+    return JSONResponse(status_code=status.HTTP_200_OK, content=parse_json(result))
 
 
-@app.get("/search", status_code=status.HTTP_200_OK)
+@app.get("/search")
 async def search(query: str = "", skip: int = 0, limit: int = 10):
-    return {"search": []}
+    result = await Products.find({"title": {"$regex": query}}).to_list(limit)
+    return JSONResponse(status_code=status.HTTP_200_OK, content=parse_json(result))
 
 
-@app.post("/product", status_code=status.HTTP_201_CREATED)
-async def create_product(
-    title: str,
-    category: str,
-    price: int,
-    location: str,
-    description: str,
-    isNegotiable: bool,
-):
-    return {"id": 1}
+@app.post("/product")
+async def create_product(product: Product):
+    product_json = jsonable_encoder(product)
+    new_product = await Products.insert_one(product_json)
+    created_product = await Products.find_one({"_id": new_product.inserted_id})
+    return JSONResponse(
+        status_code=status.HTTP_201_CREATED, content=parse_json(created_product)
+    )
 
 
-@app.get("/product/{id}", status_code=status.HTTP_200_OK)
+@app.get("/product/{id}", status_code=status.HTTP_404_NOT_FOUND)
 async def get_product(id):
-    return {"data": ""}
+    result = await Products.find_one({"_id": ObjectId(id)})
+    if result:
+        return JSONResponse(status_code=status.HTTP_200_OK, content=parse_json(result))
 
 
 @app.patch("/product/{id}", status_code=status.HTTP_204_NO_CONTENT)
-async def edit_product(
-    title: str,
-    category: str,
-    price: int,
-    location: str,
-    description: str,
-    isNegotiable: bool,
-):
-    return {"status": 204}
+async def edit_product(id, product: Product):
+    await Products.find_one_and_update(
+        {"_id": ObjectId(id)}, {"$set": jsonable_encoder(product)}
+    )
 
 
 @app.delete("/product/{id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_product(id):
-    return {"status": 204}
+    await Products.delete_one({"_id": ObjectId(id)})
