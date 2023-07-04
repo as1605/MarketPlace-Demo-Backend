@@ -9,3 +9,5 @@ micros:
     presets:
       env:
         - name: MONGODB_URL
+    public_routes:
+      - "/*"
