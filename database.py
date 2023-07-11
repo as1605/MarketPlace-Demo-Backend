@@ -6,6 +6,7 @@ from bson import json_util
 from bson import ObjectId
 from typing import Union
 
+
 class Product(BaseModel):
     _id: Union[ObjectId, None]
     title: str
@@ -13,8 +14,10 @@ class Product(BaseModel):
     price: int
     location: str
     description: str
-    img_url: Union[str, None] # Optional field for including image URL
-    metadata_user: Union[str, None] # Optional field for storing info about buyer or seller
+    img_url: Union[str, None]  # Optional field for including image URL
+    metadata_user: Union[
+        str, None
+    ]  # Optional field for storing info about buyer or seller
     isNegotiable: bool
     isFeatured: bool
     isPromoted: bool

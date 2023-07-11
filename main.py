@@ -1,6 +1,7 @@
 from fastapi import FastAPI, status, HTTPException
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
 
 from bson import ObjectId
 import dotenv
@@ -10,6 +11,14 @@ dotenv.load_dotenv()
 from database import *
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 @app.get("/")
